@@ -3,7 +3,7 @@ CREATE DATABASE diplomatiki_ergasia;
 USE diplomatiki_ergasia;
 
 CREATE TABLE IF NOT EXISTS students (
-    id INT NOT NULL,
+    id INT NOT NULL UNIQUE,
 	name VARCHAR(50) DEFAULT ('Unknown'),               
     surname VARCHAR(50) DEFAULT ('Unknown'),  
 	student_number INT NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 CREATE TABLE IF NOT EXISTS professors (
-    id INT NOT NULL,
+    id INT NOT NULL UNIQUE,
 	name VARCHAR(50) DEFAULT ('Unknown'),               
     surname VARCHAR(50) DEFAULT ('Unknown'),   
 	email VARCHAR(100) NOT NULL DEFAULT ('Unknown'),
@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS professors (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS secretariat (
+	id INT NOT NULL UNIQUE,
+	email VARCHAR(100) NOT NULL DEFAULT ('Unknown'),
+	PRIMARY KEY (email)
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id INT NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -41,7 +47,8 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('student', 'professor', 'secretariat') NOT NULL,
     PRIMARY KEY (email),
     FOREIGN KEY (id) REFERENCES students(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id) REFERENCES professors(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id) REFERENCES professors(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id) REFERENCES secretariat(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 	
@@ -63,12 +70,6 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 	ON UPDATE CASCADE ON DELETE CASCADE	
 );
 
-
-
-CREATE TABLE IF NOT EXISTS secretariat (
-	email VARCHAR(100) NOT NULL DEFAULT ('Unknown'),
-	PRIMARY KEY (email)
-);
 
 
 CREATE TABLE IF NOT EXISTS commitee (
