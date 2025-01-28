@@ -45,10 +45,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('student', 'professor', 'secretariat') NOT NULL,
-    PRIMARY KEY (email),
-    FOREIGN KEY (id) REFERENCES students(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id) REFERENCES professors(id) ON DELETE CASCADE ON UPDATE CASCADE,
-	FOREIGN KEY (id) REFERENCES secretariat(id) ON DELETE CASCADE ON UPDATE CASCADE
+    PRIMARY KEY (email)
 );
 
 	
