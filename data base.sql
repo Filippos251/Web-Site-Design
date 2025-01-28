@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 
 CREATE TABLE IF NOT EXISTS commitee (
     id_diplomatikis INT NOT NULL UNIQUE,
-    num_prof1 INT DEFAULT NULL,
+    supervisor INT DEFAULT NULL,
     num_prof2 INT DEFAULT NULL,
     num_prof3 INT DEFAULT NULL,
     
