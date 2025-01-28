@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS commitee (
     FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
     ON UPDATE CASCADE ON DELETE CASCADE,
 
-    FOREIGN KEY (num_prof1) REFERENCES professors(id)
+    FOREIGN KEY (supervisor) REFERENCES professors(id)
     ON UPDATE CASCADE ON DELETE CASCADE,
     
     FOREIGN KEY (num_prof2) REFERENCES professors(id)
