@@ -50,6 +50,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error_message = "Committee is complete.";
             }
+
+            // After updating, check if both num_prof2 and num_prof3 are not NULL
+            $check_committee_sql = "SELECT num_prof2, num_prof3 FROM commitee WHERE id_diplomatikis = ?";
+            $check_committee_stmt = $conn->prepare($check_committee_sql);
+            $check_committee_stmt->bind_param("i", $id_diplomatikis);
+            $check_committee_stmt->execute();
+            $committee_result = $check_committee_stmt->get_result();
+
+            if ($committee_result && $committee_result->num_rows > 0) {
+                $committee_row = $committee_result->fetch_assoc();
+                if (!is_null($committee_row['num_prof2']) && !is_null($committee_row['num_prof3'])) {
+                    // Update the state of the diplomatiki table to 'active'
+                    $update_diplomatiki_sql = "UPDATE diplomatiki SET state = 'active' WHERE id_diplomatikis = ?";
+                    $update_diplomatiki_stmt = $conn->prepare($update_diplomatiki_sql);
+                    $update_diplomatiki_stmt->bind_param("i", $id_diplomatikis);
+                    if ($update_diplomatiki_stmt->execute()) {
+                        $success_message .= " Committee is now active.";
+                    } else {
+                        $error_message = "Failed to update the state of the topic: " . $update_diplomatiki_stmt->error;
+                    }
+                }
+            }
+
+            $check_committee_stmt->close();
         }
 
         $check_stmt->close();
