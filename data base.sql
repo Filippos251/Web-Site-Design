@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 	id_diplomatikis INT AUTO_INCREMENT, 
 	topic VARCHAR(200) DEFAULT ('Unknown'),
 	description TEXT DEFAULT ('Unknown'),
-	pdf TEXT DEFAULT NULL;
+	pdf TEXT DEFAULT NULL,
 	state ENUM('active', 'under examination', 'finished', 'canceled', 'under assignment'),
 	prof_num INT DEFAULT NULL,
 	stud_num INT DEFAULT NULL,
