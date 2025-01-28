@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 	state ENUM('active', 'under examination', 'finished', 'canceled', 'under assignment'),
 	prof_num INT DEFAULT NULL,
 	stud_num INT DEFAULT NULL,
+	active_date DATETIME DEFAULT NULL, 
+	finished_date DATETIME DEFAULT NULL,
 	
 	PRIMARY KEY (id_diplomatikis),
 	
