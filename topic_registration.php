@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_diplomatikis = $stmt->insert_id;
 
         // Insert into the `commitee` table
-        $commitee_sql = "INSERT INTO commitee (id_diplomatikis, num_prof1) VALUES (?, ?)";
+        $commitee_sql = "INSERT INTO commitee (id_diplomatikis, supervisor) VALUES (?, ?)";
         $commitee_stmt = $conn->prepare($commitee_sql);
         $commitee_stmt->bind_param("ii", $id_diplomatikis, $professor_id);
 
