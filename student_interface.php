@@ -40,7 +40,7 @@ $id_diplomatikis = null;
 if ($thesis_result && $thesis_result->num_rows > 0) {
     $thesis = $thesis_result->fetch_assoc();
     $id_diplomatikis = $thesis['id_diplomatikis'];
-    if ($thesis['state'] === 'active') {
+    if ($thesis['state'] === 'under assignment') {
         $can_request_committee = true;
     }
     if ($thesis['state'] === 'under examination') {
