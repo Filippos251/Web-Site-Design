@@ -11,10 +11,9 @@ require 'db.php';
 // Assuming the logged-in user's ID is stored in the session
 $user_id = $_SESSION['user_id'];
 
-// Fetch the student's name and surname from the database
+// Fetch the professor's name and surname from the database
 $query = "SELECT name, surname FROM professors WHERE id = '$user_id'";
 $result = $conn->query($query);
-
 
 if ($result && $result->num_rows > 0) {
     $professor = $result->fetch_assoc();
@@ -105,6 +104,8 @@ if ($result && $result->num_rows > 0) {
         <button onclick="location.href='topic_assignment.php'">Topic Assignment</button>
         <button onclick="location.href='topics_created.php'">Topics Created</button>
         <button onclick="location.href='topic_registration.php'">Topic Registration</button>
+        <button onclick="location.href='committee_invitation.php'">Committee Invitations</button>
+        <button onclick="location.href='statistics.php'">Statistics</button>
         <br><br>
         <a href="logout.php" class="link-button">Logout</a>
     </div>
