@@ -170,7 +170,7 @@ $conn->close();
         p {
             margin: 10px 0;
         }
-        .back-button, .cancel-button {
+        .back-button, .cancel-button, .notes-button {
             margin-top: 20px;
             padding: 10px;
             color: white;
@@ -189,6 +189,12 @@ $conn->close();
         }
         .cancel-button:hover {
             background-color: #c82333;
+        }
+        .notes-button {
+            background-color: #28a745;
+        }
+        .notes-button:hover {
+            background-color: #218838;
         }
         .committee {
             margin-top: 20px;
@@ -281,6 +287,9 @@ $conn->close();
             </div>
         <?php endif; ?>
 
+        <!-- Notes Button -->
+        <button class="notes-button" onclick="location.href='thesis_notes.php?id=<?php echo $thesis_id; ?>'">Notes</button>
+        
         <button class="back-button" onclick="location.href='thesis_list2.php'">Back</button>
     </div>
 </body>
