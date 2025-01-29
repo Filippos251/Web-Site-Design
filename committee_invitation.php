@@ -73,26 +73,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
+            // Update acceptance date in commitee_app table
+            $update_acceptance_sql = "UPDATE commitee_app SET acceptance_date = NOW() WHERE id_diplomatikis = ? AND prof_num_app = ?";
+            $update_acceptance_stmt = $conn->prepare($update_acceptance_sql);
+            $update_acceptance_stmt->bind_param("ii", $id_diplomatikis, $professor_id);
+            $update_acceptance_stmt->execute();
+
             $check_committee_stmt->close();
         }
 
         $check_stmt->close();
     } elseif ($action === 'reject') {
         // Handle rejection (e.g., delete the invitation or mark it as rejected)
-        $delete_sql = "DELETE FROM commitee_app WHERE id_diplomatikis = ? AND prof_num_app = ?";
-        $delete_stmt = $conn->prepare($delete_sql);
-        $delete_stmt->bind_param("ii", $id_diplomatikis, $professor_id);
-        if ($delete_stmt->execute()) {
+        $update_rejection_sql = "UPDATE commitee_app SET rejection_date = NOW() WHERE id_diplomatikis = ? AND prof_num_app = ?";
+        $update_rejection_stmt = $conn->prepare($update_rejection_sql);
+        $update_rejection_stmt->bind_param("ii", $id_diplomatikis, $professor_id);
+        if ($update_rejection_stmt->execute()) {
             $success_message = "Invitation rejected successfully.";
         } else {
-            $error_message = "Failed to reject the invitation: " . $delete_stmt->error;
+            $error_message = "Failed to reject the invitation: " . $update_rejection_stmt->error;
         }
-        $delete_stmt->close();
+        $update_rejection_stmt->close();
     }
+
+    // Refresh the page to reflect the changes
+    header("Location: committee_invitation.php");
+    exit();
 }
 
 // Fetch committee invitations for the professor
-$sql = "SELECT ca.id_diplomatikis, d.topic, d.description FROM commitee_app ca JOIN diplomatiki d ON ca.id_diplomatikis = d.id_diplomatikis WHERE ca.prof_num_app = ?";
+$sql = "SELECT ca.id_diplomatikis, d.topic, d.description FROM commitee_app ca JOIN diplomatiki d ON ca.id_diplomatikis = d.id_diplomatikis WHERE ca.prof_num_app = ? AND ca.acceptance_date IS NULL AND ca.rejection_date IS NULL";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $professor_id);
 $stmt->execute();
