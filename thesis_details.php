@@ -38,9 +38,37 @@ if ($result && $result->num_rows > 0) {
     die("Thesis not found.");
 }
 
+// Handle changing state to 'under examination'
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_state'])) {
+    // Ensure the professor is the supervisor
+    $check_supervisor_sql = "SELECT supervisor FROM commitee WHERE id_diplomatikis = ? AND supervisor = ?";
+    $check_stmt = $conn->prepare($check_supervisor_sql);
+    $check_stmt->bind_param("ii", $thesis_id, $professor_id);
+    $check_stmt->execute();
+    $result = $check_stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        // Update the thesis state to 'under examination'
+        $update_state_sql = "UPDATE diplomatiki SET state = 'under examination' WHERE id_diplomatikis = ?";
+        $update_stmt = $conn->prepare($update_state_sql);
+        $update_stmt->bind_param("i", $thesis_id);
+
+        if ($update_stmt->execute()) {
+            $success_message = "Thesis state changed to 'Under Examination'.";
+        } else {
+            $error_message = "Failed to update thesis state.";
+        }
+    } else {
+        $error_message = "Only the supervisor can change the thesis state.";
+    }
+}
+
+
 // Check if the assignment can be cancelled (active and more than 2 years old)
 $can_cancel = false;
-if ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
+if ($thesis['state'] === 'under assignment') {
+    $can_cancel = true;
+} elseif ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
     $active_date = new DateTime($thesis['active_date']);
     $current_date = new DateTime();
     $interval = $current_date->diff($active_date);
@@ -48,6 +76,7 @@ if ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
         $can_cancel = true;
     }
 }
+
 
 // Fetch professor names for the committee
 $committee_members = [];
@@ -136,7 +165,7 @@ $conn->close();
         p {
             margin: 10px 0;
         }
-        .back-button, .cancel-button, .notes-button {
+        .back-button, .cancel-button, .notes-button, .state-button {
             margin-top: 20px;
             padding: 10px;
             color: white;
@@ -162,6 +191,14 @@ $conn->close();
         .notes-button:hover {
             background-color: #218838;
         }
+		.state-button {
+            background-color: #800020;
+        } 
+		
+		.state-button:hover {
+		background-color: #0056b3;
+		}
+
         .committee {
             margin-top: 20px;
         }
@@ -209,6 +246,11 @@ $conn->close();
         <?php else: ?>
             <p><strong>Student:</strong> Not assigned yet.</p>
         <?php endif; ?>
+		<?php if ($thesis['state'] === 'active' && $thesis['supervisor'] == $professor_id): ?>
+    <form  method="POST" style="margin-top: 10px;">
+        <button type="submit" name="change_state" style="background-color: #007BFF; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Change State to Under Examination</button>
+    </form>
+		<?php endif; ?>
 
         <div class="committee">
             <h3>Committee Members:</h3>
