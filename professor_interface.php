@@ -104,10 +104,12 @@ if ($result && $result->num_rows > 0) {
         <button onclick="location.href='topic_assignment.php'">Topic Assignment</button>
         <button onclick="location.href='topics_created.php'">Topics Created</button>
         <button onclick="location.href='topic_registration.php'">Topic Registration</button>
-        <button onclick="location.href='committee_invitation.php'">Committee Invitations</button>
-        <button onclick="location.href='statistics.php'">Statistics</button>
+        <button onclick="location.href='thesis_list2.php'">Thesis List</button> <!-- Thesis List Button -->
+		<button onclick="location.href='committee_invitation.php'">Committee Invitations</button> <!-- Committee Invitations -->
+        <button onclick="location.href='statistics.php'">Statistics</button> <!-- Statistics -->
         <br><br>
         <a href="logout.php" class="link-button">Logout</a>
     </div>
 </body>
 </html>
+
