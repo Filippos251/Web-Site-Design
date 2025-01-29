@@ -15,78 +15,94 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 }
 
 $thesis_id = intval($_GET['id']);
-$professor_id = $_SESSION['user_id']; // Get the logged-in professor's ID
+$professor_id = $_SESSION['user_id'];
 $success_message = "";
 $error_message = "";
 
-// Fetch thesis details to ensure the user is the supervisor
+// Fetch thesis details
 $query = "
-    SELECT d.state, d.active_date, c.supervisor
+    SELECT d.topic, d.state, d.active_date, c.supervisor
     FROM diplomatiki d
     LEFT JOIN commitee c ON d.id_diplomatikis = c.id_diplomatikis
-    WHERE d.id_diplomatikis = ? AND c.supervisor = ?";
+    WHERE d.id_diplomatikis = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("ii", $thesis_id, $professor_id);
+$stmt->bind_param("i", $thesis_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result && $result->num_rows > 0) {
     $thesis = $result->fetch_assoc();
-    // Check if the assignment can be cancelled (active and more than 2 years old)
-    $can_cancel = false;
-    if ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
-        $active_date = new DateTime($thesis['active_date']);
-        $current_date = new DateTime();
-        $interval = $current_date->diff($active_date);
-        if ($interval->y >= 2) {
-            $can_cancel = true;
-        }
-    }
 } else {
-    die("You are not authorized to cancel this assignment or the thesis details are invalid.");
+    die("Thesis not found.");
 }
 
-$stmt->close();
+// Ensure the logged-in professor is the supervisor
+if ($thesis['supervisor'] != $professor_id) {
+    die("You do not have permission to cancel this thesis.");
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $protocol_number = isset($_POST['protocol_number']) ? $_POST['protocol_number'] : '';
-    $general_meeting_date = isset($_POST['general_meeting_date']) ? $_POST['general_meeting_date'] : '';
-    $reasoning = isset($_POST['reasoning']) ? $_POST['reasoning'] : '';
+// Check if the thesis can be canceled
+$can_cancel = false;
+if ($thesis['state'] === 'under assignment') {
+    $can_cancel = true;
+} elseif ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
+    $active_date = new DateTime($thesis['active_date']);
+    $current_date = new DateTime();
+    $interval = $current_date->diff($active_date);
+    if ($interval->y >= 2) {
+        $can_cancel = true;
+    }
+}
 
-    // Validate inputs
-    if (empty($protocol_number) || empty($general_meeting_date)) {
-        $error_message = "Please provide both protocol number and date of General Meeting.";
-    } else {
-        // Proceed with cancelation
-        $conn->begin_transaction(); // Start transaction
+// Handle cancellation form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cancel'])) {
+    if ($can_cancel) {
+        $protocol_number = $_POST['protocol_number'];
+        $meeting_date = $_POST['meeting_date'];
+        $reasoning = $_POST['reasoning'];
+
+        $conn->begin_transaction();
 
         try {
-            // Insert protocol number and date of General Meeting into the general_mettings table
-            $insert_protocol_sql = "INSERT INTO general_meetings (protocol_number, general_meeting_date, reasoning) VALUES (?, ?, ?)";
-            $insert_protocol_stmt = $conn->prepare($insert_protocol_sql);
-            $insert_protocol_stmt->bind_param("iss", $protocol_number, $general_meeting_date, $reasoning);
-            $insert_protocol_stmt->execute();
+            // Insert meeting details into general_meetings
+            $insert_meeting_sql = "INSERT INTO general_meetings (protocol_number, general_meeting_date, reasoning) VALUES (?, ?, ?)";
+            $insert_meeting_stmt = $conn->prepare($insert_meeting_sql);
+            $insert_meeting_stmt->bind_param("iss", $protocol_number, $meeting_date, $reasoning);
+            $insert_meeting_stmt->execute();
 
-            // Clear committee members from commitee
+            // Delete invitations from commitee_app
+            $delete_invitations_sql = "DELETE FROM commitee_app WHERE id_diplomatikis = ?";
+            $delete_invitations_stmt = $conn->prepare($delete_invitations_sql);
+            $delete_invitations_stmt->bind_param("i", $thesis_id);
+            $delete_invitations_stmt->execute();
+
+            // Clear committee members (except supervisor)
             $clear_committee_sql = "UPDATE commitee SET num_prof2 = NULL, num_prof3 = NULL WHERE id_diplomatikis = ?";
             $clear_committee_stmt = $conn->prepare($clear_committee_sql);
             $clear_committee_stmt->bind_param("i", $thesis_id);
             $clear_committee_stmt->execute();
 
-            // Remove the student assignment from the diplomatiki table and update state to 'cancelled'
-            $clear_student_sql = "UPDATE diplomatiki SET stud_num = NULL, state = 'cancelled' WHERE id_diplomatikis = ?";
+            // Remove student assignment from diplomatiki
+            $clear_student_sql = "UPDATE diplomatiki SET stud_num = NULL WHERE id_diplomatikis = ?";
             $clear_student_stmt = $conn->prepare($clear_student_sql);
             $clear_student_stmt->bind_param("i", $thesis_id);
             $clear_student_stmt->execute();
 
-            $conn->commit(); // Commit the transaction
-            $success_message = "The assignment has been successfully canceled.";
+            $conn->commit();
+            $success_message = "The assignment has been successfully canceled and recorded.";
+            header("Location: thesis_details.php?id=$thesis_id&message=cancel_success");
+            exit();
         } catch (Exception $e) {
-            $conn->rollback(); // Rollback the transaction in case of error
+            $conn->rollback();
             $error_message = "Failed to cancel the assignment: " . $e->getMessage();
         }
+    } else {
+        $error_message = "You do not have permission to cancel this thesis.";
     }
 }
+
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -94,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancel Assignment</title>
+    <title>Cancel Thesis Assignment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -110,24 +126,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .container {
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             background: rgba(255, 255, 255, 0.9);
             padding: 20px 30px;
             border-radius: 15px;
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
         h2 {
-            text-align: center;
             color: #800020;
         }
         form {
             display: flex;
             flex-direction: column;
-        }
-        label {
-            margin-top: 10px;
+            align-items: center;
         }
         input, textarea {
+            width: 80%;
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #ccc;
@@ -136,54 +151,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button {
             margin-top: 20px;
             padding: 10px;
-            background-color: #dc3545;
+            background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #c82333;
+            background-color: #0056b3;
+        }
+        .back-button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #800020;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #660017;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
         }
         .success {
             background-color: #d4edda;
             color: #155724;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
         }
         .error {
             background-color: #f8d7da;
             color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Cancel Assignment</h2>
+        <h2>Cancel Thesis Assignment</h2>
+        <p><strong>Thesis Topic:</strong> <?php echo htmlspecialchars($thesis['topic']); ?></p>
 
-        <!-- Display success or error messages -->
         <?php if ($success_message): ?>
-            <div class="success"><?php echo $success_message; ?></div>
+            <p class="message success"><?php echo $success_message; ?></p>
         <?php elseif ($error_message): ?>
-            <div class="error"><?php echo $error_message; ?></div>
+            <p class="message error"><?php echo $error_message; ?></p>
+        <?php else: ?>
+            <form method="POST">
+                <label>Protocol Number:</label>
+                <input type="number" name="protocol_number" required>
+
+                <label>General Meeting Date:</label>
+                <input type="date" name="meeting_date" required>
+
+                <label>Reasoning:</label>
+                <textarea name="reasoning" rows="4" required></textarea>
+
+                <button type="submit" name="confirm_cancel">Confirm Cancellation</button>
+            </form>
         <?php endif; ?>
 
-        <form action="cancel_assignment_interface.php?id=<?php echo $thesis_id; ?>" method="POST">
-            <label for="protocol_number">Protocol Number:</label>
-            <input type="number" id="protocol_number" name="protocol_number" required>
-
-            <label for="general_meeting_date">Date of General Meeting:</label>
-            <input type="date" id="general_meeting_date" name="general_meeting_date" required>
-
-            <label for="reasoning">Reasoning:</label>
-            <textarea id="reasoning" name="reasoning"></textarea>
-
-            <button type="submit">Submit</button>
-        </form>
+        <button class="back-button" onclick="location.href='thesis_details.php?id=<?php echo $thesis_id; ?>'">Back</button>
     </div>
 </body>
 </html>
