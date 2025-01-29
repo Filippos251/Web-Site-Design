@@ -19,54 +19,9 @@ $professor_id = $_SESSION['user_id']; // Get the logged-in professor's ID
 $success_message = "";
 $error_message = "";
 
-// Handle cancel assignment
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_assignment'])) {
-    // Verify the professor is the supervisor
-    $check_supervisor_sql = "SELECT state FROM diplomatiki WHERE id_diplomatikis = ? AND state = 'under assignment'";
-    $check_stmt = $conn->prepare($check_supervisor_sql);
-    $check_stmt->bind_param("i", $thesis_id);
-    $check_stmt->execute();
-    $result = $check_stmt->get_result();
-
-    if ($result && $result->num_rows > 0) {
-        // Proceed with cancelation
-        $conn->begin_transaction(); // Start transaction
-
-        try {
-            // Delete invitations from commitee_app
-            $delete_invitations_sql = "DELETE FROM commitee_app WHERE id_diplomatikis = ?";
-            $delete_invitations_stmt = $conn->prepare($delete_invitations_sql);
-            $delete_invitations_stmt->bind_param("i", $thesis_id);
-            $delete_invitations_stmt->execute();
-
-            // Clear committee members from commitee
-            $clear_committee_sql = "UPDATE commitee SET supervisor = NULL, num_prof2 = NULL, num_prof3 = NULL WHERE id_diplomatikis = ?";
-            $clear_committee_stmt = $conn->prepare($clear_committee_sql);
-            $clear_committee_stmt->bind_param("i", $thesis_id);
-            $clear_committee_stmt->execute();
-
-            // Remove the student assignment from the diplomatiki table
-            $clear_student_sql = "UPDATE diplomatiki SET stud_num = NULL WHERE id_diplomatikis = ?";
-            $clear_student_stmt = $conn->prepare($clear_student_sql);
-            $clear_student_stmt->bind_param("i", $thesis_id);
-            $clear_student_stmt->execute();
-
-            $conn->commit(); // Commit the transaction
-            $success_message = "The assignment has been successfully canceled.";
-        } catch (Exception $e) {
-            $conn->rollback(); // Rollback the transaction in case of error
-            $error_message = "Failed to cancel the assignment: " . $e->getMessage();
-        }
-    } else {
-        $error_message = "You can only cancel assignments for theses under assignment where you are the supervisor.";
-    }
-
-    $check_stmt->close();
-}
-
 // Fetch thesis details
 $query = "
-    SELECT d.topic, d.description, d.state, s.name AS student_name, s.surname AS student_surname, s.student_number,
+    SELECT d.topic, d.description, d.state, d.active_date, s.name AS student_name, s.surname AS student_surname, s.student_number,
            c.supervisor, c.num_prof2, c.num_prof3
     FROM diplomatiki d
     LEFT JOIN students s ON d.stud_num = s.student_number
@@ -81,6 +36,17 @@ if ($result && $result->num_rows > 0) {
     $thesis = $result->fetch_assoc();
 } else {
     die("Thesis not found.");
+}
+
+// Check if the assignment can be cancelled (active and more than 2 years old)
+$can_cancel = false;
+if ($thesis['state'] === 'active' && isset($thesis['active_date'])) {
+    $active_date = new DateTime($thesis['active_date']);
+    $current_date = new DateTime();
+    $interval = $current_date->diff($active_date);
+    if ($interval->y >= 2) {
+        $can_cancel = true;
+    }
 }
 
 // Fetch professor names for the committee
@@ -235,8 +201,8 @@ $conn->close();
         <?php if ($thesis['student_name'] && $thesis['student_surname']): ?>
             <p><strong>Student:</strong> <?php echo htmlspecialchars($thesis['student_name'] . ' ' . $thesis['student_surname']); ?> (<?php echo htmlspecialchars($thesis['student_number']); ?>)</p>
             
-            <?php if ($thesis['state'] === 'under assignment' && $thesis['supervisor'] == $professor_id): ?>
-                <form method="POST">
+            <?php if ($can_cancel && $thesis['supervisor'] == $professor_id): ?>
+                <form method="POST" action="cancel_assignment_interface.php?id=<?php echo $thesis_id; ?>">
                     <button type="submit" name="cancel_assignment" class="cancel-button">Cancel Assignment</button>
                 </form>
             <?php endif; ?>
