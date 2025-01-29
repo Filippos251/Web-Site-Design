@@ -54,11 +54,11 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 	id_diplomatikis INT AUTO_INCREMENT, 
 	topic VARCHAR(200) DEFAULT ('Unknown'),
 	description TEXT DEFAULT ('Unknown'),
-	pdf TEXT DEFAULT NULL,
+	pdf TEXT DEFAULT NULL;
 	state ENUM('active', 'under examination', 'finished', 'canceled', 'under assignment'),
 	prof_num INT DEFAULT NULL,
 	stud_num INT DEFAULT NULL,
-	active_date DATETIME DEFAULT NULL, 
+	active_date DATETIME DEFAULT NULL,
 	finished_date DATETIME DEFAULT NULL,
 	
 	PRIMARY KEY (id_diplomatikis),
@@ -100,6 +100,9 @@ CREATE TABLE IF NOT EXISTS commitee_app (
 	stud_num INT DEFAULT NULL,
 	id_diplomatikis INT DEFAULT NULL,
 	prof_num_app INT DEFAULT NULL,
+	invitation_date DATETIME DEFAULT NULL,
+	acceptance_date DATETIME DEFAULT NULL,
+	rejection_date DATETIME DEFAULT NULL
 	
 	FOREIGN KEY (stud_num) REFERENCES students(student_number)
 	ON UPDATE CASCADE ON DELETE CASCADE,
