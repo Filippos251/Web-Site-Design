@@ -80,7 +80,9 @@ CREATE TABLE IF NOT EXISTS commitee (
     supervisor INT DEFAULT NULL,
     num_prof2 INT DEFAULT NULL,
     num_prof3 INT DEFAULT NULL,
-    
+    note1 TEXT DEFAULT NULL, 
+    note2 TEXT DEFAULT NULL ,
+    note3 TEXT DEFAULT NULL,
     
     FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
     ON UPDATE CASCADE ON DELETE CASCADE,
