@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 	stud_num INT DEFAULT NULL,
 	active_date DATETIME DEFAULT NULL,
 	finished_date DATETIME DEFAULT NULL,
+	announcement_text TEXT DEFAULT NULL,
 	
 	PRIMARY KEY (id_diplomatikis),
 	
