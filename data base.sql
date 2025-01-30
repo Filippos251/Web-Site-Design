@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS support_files(
 	id_diplomatikis INT DEFAULT NULL UNIQUE,
 	path_of_files TEXT DEFAULT NULL,
 	link TEXT NOT NULL,
+	examination_date DATETIME DEFAULT NULL,
 	
 	FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
 	ON UPDATE CASCADE ON DELETE CASCADE
