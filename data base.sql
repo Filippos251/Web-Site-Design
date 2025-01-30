@@ -84,6 +84,10 @@ CREATE TABLE IF NOT EXISTS commitee (
     note1 TEXT DEFAULT NULL, 
     note2 TEXT DEFAULT NULL ,
     note3 TEXT DEFAULT NULL,
+    supervisor_grade INT DEFAULT NULL, 
+    grade2 INT DEFAULT NULL,
+    grade3 INT DEFAULT NULL, 
+    grade_registration_state ENUM('active', 'inactive') DEFAULT 'inactive',
     
     FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
     ON UPDATE CASCADE ON DELETE CASCADE,
