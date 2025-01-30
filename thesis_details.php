@@ -63,7 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_state'])) {
     }
 }
 
-
 // Check if the assignment can be cancelled (active and more than 2 years old)
 $can_cancel = false;
 if ($thesis['state'] === 'under assignment') {
@@ -76,7 +75,6 @@ if ($thesis['state'] === 'under assignment') {
         $can_cancel = true;
     }
 }
-
 
 // Fetch professor names for the committee
 $committee_members = [];
@@ -100,7 +98,7 @@ if ($thesis['num_prof2']) {
 }
 if ($thesis['num_prof3']) {
     $prof3_query = "SELECT name, surname FROM professors WHERE id = ?";
-    $stmt = $conn->prepare($prof3_query);
+    $stmt->prepare($prof3_query);
     $stmt->bind_param("i", $thesis['num_prof3']);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -116,7 +114,7 @@ if ($thesis['state'] === 'under assignment') {
         FROM commitee_app ca
         JOIN professors p ON ca.prof_num_app = p.id
         WHERE ca.id_diplomatikis = ?";
-    $stmt = $conn->prepare($invitation_query);
+    $stmt->prepare($invitation_query);
     $stmt->bind_param("i", $thesis_id);
     $stmt->execute();
     $invitation_result = $stmt->get_result();
@@ -191,14 +189,12 @@ $conn->close();
         .notes-button:hover {
             background-color: #218838;
         }
-		.state-button {
+        .state-button {
             background-color: #800020;
-        } 
-		
-		.state-button:hover {
-		background-color: #0056b3;
-		}
-
+        }
+        .state-button:hover {
+            background-color: #0056b3;
+        }
         .committee {
             margin-top: 20px;
         }
@@ -246,11 +242,11 @@ $conn->close();
         <?php else: ?>
             <p><strong>Student:</strong> Not assigned yet.</p>
         <?php endif; ?>
-		<?php if ($thesis['state'] === 'active' && $thesis['supervisor'] == $professor_id): ?>
-    <form  method="POST" style="margin-top: 10px;">
-        <button type="submit" name="change_state" style="background-color: #007BFF; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Change State to Under Examination</button>
-    </form>
-		<?php endif; ?>
+        <?php if ($thesis['state'] === 'active' && $thesis['supervisor'] == $professor_id): ?>
+            <form method="POST" style="margin-top: 10px;">
+                <button type="submit" name="change_state" style="background-color: #007BFF; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Change State to Under Examination</button>
+            </form>
+        <?php endif; ?>
 
         <div class="committee">
             <h3>Committee Members:</h3>
@@ -298,6 +294,26 @@ $conn->close();
         <!-- Notes Button -->
         <button class="notes-button" onclick="location.href='thesis_notes.php?id=<?php echo $thesis_id; ?>'">Notes</button>
         
+        <!-- Student's Text Button, shown only if the state is 'under examination' -->
+        <?php if ($thesis['state'] === 'under examination'): ?>
+            <button class="notes-button" onclick="location.href='provoli_keimenou.php?id=<?php echo $thesis_id; ?>'">Student's Text</button>
+        <?php endif; ?>
+		
+		<!-- Announcement Text Button, shown only if the state is 'under examination' and path_of_files is not NULL -->
+        <?php if ($thesis['state'] === 'under examination' && !empty($thesis['path_of_files']) && $thesis['supervisor'] == $professor_id): ?>
+            <button class="notes-button" onclick="location.href='announcement_text.php?id=<?php echo $thesis_id; ?>'">Announcement Text</button>
+        <?php endif; ?>
+		
+		<!-- Grade Registration Button, shown only if the state is 'under examination', path_of_files is not NULL, and grade registration state is active -->
+        <?php if ($thesis['state'] === 'under examination' && !empty($thesis['path_of_files']) && $thesis['grade_registration_state'] == 'active'): ?>
+            <button class="notes-button" onclick="location.href='grade_registration.php?id=<?php echo $thesis_id; ?>'">Grade Registration</button>
+        <?php endif; ?>
+		
+		    <!-- Registered Grades Button, shown only if the state is 'under examination' and path_of_files is not NULL -->
+        <?php if ($thesis['state'] === 'under examination' && !empty($thesis['path_of_files'])): ?>
+            <button class="notes-button" onclick="location.href='registered_grades.php?id=<?php echo $thesis_id; ?>'">Registered Grades</button>
+        <?php endif; ?>
+
         <button class="back-button" onclick="location.href='thesis_list2.php'">Back</button>
     </div>
 </body>
