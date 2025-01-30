@@ -145,3 +145,9 @@ CREATE TABLE IF NOT EXISTS support_files(
 	ON UPDATE CASCADE ON DELETE CASCADE
 	
 );
+
+CREATE TABLE IF NOT EXISTS general_meetings (
+        protocol_number INT NOT NULL PRIMARY KEY,
+        general_meeting_date DATE NOT NULL, 
+        reasoning TEXT DEFAULT NULL
+);
