@@ -30,7 +30,7 @@ if ($student_result && $student_result->num_rows > 0) {
         $id_diplomatikis = $thesis['id_diplomatikis'];
         $committee_query = "
             SELECT 
-                (SELECT CONCAT(name, ' ', surname) FROM professors WHERE id = c.num_prof1) AS prof1,
+                (SELECT CONCAT(name, ' ', surname) FROM professors WHERE id = c.supervisor) AS prof1,
                 (SELECT CONCAT(name, ' ', surname) FROM professors WHERE id = c.num_prof2) AS prof2,
                 (SELECT CONCAT(name, ' ', surname) FROM professors WHERE id = c.num_prof3) AS prof3
             FROM commitee c
