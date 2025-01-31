@@ -146,6 +146,9 @@ CREATE TABLE IF NOT EXISTS support_files(
 	path_of_files TEXT DEFAULT NULL,
 	link TEXT NOT NULL,
 	examination_date DATETIME DEFAULT NULL,
+	presentation ENUM('remote', 'live', 'UNKNOWN') DEFAULT 'UNKNOWN',
+	remote_room TEXT DEFAULT NULL,
+	room VARCHAR(40) DEFAULT NULL,
 	
 	FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
 	ON UPDATE CASCADE ON DELETE CASCADE
