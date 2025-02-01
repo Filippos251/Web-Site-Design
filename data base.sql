@@ -73,9 +73,6 @@ CREATE TABLE IF NOT EXISTS diplomatiki (
 
 
 
-
-
-
 CREATE TABLE IF NOT EXISTS commitee (
     id_diplomatikis INT NOT NULL UNIQUE,
     supervisor INT DEFAULT NULL,
@@ -88,7 +85,7 @@ CREATE TABLE IF NOT EXISTS commitee (
     grade2 INT DEFAULT NULL,
     grade3 INT DEFAULT NULL, 
     grade_registration_state ENUM('active', 'inactive') DEFAULT 'inactive',
-    
+	
     FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
     ON UPDATE CASCADE ON DELETE CASCADE,
 
@@ -121,20 +118,11 @@ CREATE TABLE IF NOT EXISTS commitee_app (
 	ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS diplomatiki_app (
-	stud_num INT DEFAULT NULL,
-	id_diplomatikis INT DEFAULT NULL,
-	
-	FOREIGN KEY (stud_num) REFERENCES students(student_number)
-	ON UPDATE CASCADE ON DELETE CASCADE,
-	
-	FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
-	ON UPDATE CASCADE ON DELETE CASCADE
-);
 
 CREATE TABLE IF NOT EXISTS praktiko (
-	id_diplomatikis INT DEFAULT NULL,
+	id_diplomatikis INT DEFAULT NULL UNIQUE,
 	grade INT DEFAULT NULL, 
+	link TEXT DEFAULT NULL,
 	
 	FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
 	ON UPDATE CASCADE ON DELETE CASCADE
@@ -152,6 +140,7 @@ CREATE TABLE IF NOT EXISTS support_files(
 	
 	FOREIGN KEY (id_diplomatikis) REFERENCES diplomatiki(id_diplomatikis)
 	ON UPDATE CASCADE ON DELETE CASCADE
+	
 	
 );
 
