@@ -65,12 +65,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $update_diplomatiki_sql = "UPDATE diplomatiki SET state = 'active', active_date = NOW() WHERE id_diplomatikis = ?";
                     $update_diplomatiki_stmt = $conn->prepare($update_diplomatiki_sql);
                     $update_diplomatiki_stmt->bind_param("i", $id_diplomatikis);
+			if (!is_null($committee_row['num_prof2']) && !is_null($committee_row['num_prof3'])) {
+        // Both positions are filled, so delete other invitations
+        $delete_invitations_sql = "DELETE FROM commitee_app WHERE id_diplomatikis = ?";
+        $delete_invitations_stmt = $conn->prepare($delete_invitations_sql);
+        $delete_invitations_stmt->bind_param("i", $id_diplomatikis);
+        $delete_invitations_stmt->execute();
+    }
                     if ($update_diplomatiki_stmt->execute()) {
                         $success_message .= " Committee is now active.";
                     } else {
                         $error_message = "Failed to update the state of the topic: " . $update_diplomatiki_stmt->error;
                     }
                 }
+				
             }
 
             // Update acceptance date in commitee_app table
