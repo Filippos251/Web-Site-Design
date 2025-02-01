@@ -31,7 +31,7 @@ $thesis_id = $thesis['id_diplomatikis'];
 $query = "
     SELECT d.topic, d.description, DATE(d.active_date) AS active_date, DATE(d.finished_date) AS finished_date, 
            s.name AS student_name, s.surname AS student_surname, s.student_number,
-           c.supervisor, c.num_prof2, c.num_prof3,
+           c.supervisor, c.num_prof2, c.num_prof3, c.grade2, c.grade3, c.supervisor_grade,
            sf.examination_date, p.grade, p.link AS nimertis_link
     FROM diplomatiki d
     LEFT JOIN students s ON d.stud_num = s.student_number
@@ -211,6 +211,12 @@ $conn->close();
                 <?php endforeach; ?>
             </ul>
         </div>
+		<div class="section">
+        <p><strong>Supervisor Grade:</strong> <?php echo htmlspecialchars($thesis_details['supervisor_grade']); ?></p>
+        <p><strong>Committee Member 2 Grade:</strong> <?php echo htmlspecialchars($thesis_details['grade2']); ?></p>
+        <p><strong>Committee Member 3 Grade:</strong> <?php echo htmlspecialchars($thesis_details['grade3']); ?></p>
+        <p><strong>Final Grade:</strong> <strong><?php echo htmlspecialchars($thesis_details['grade']); ?></strong></p>
+    </div>
 
         <div class="nimertis-box">
     <p><strong>NIMERTIS Link:</strong> 
@@ -232,3 +238,5 @@ $conn->close();
     </div>
 </body>
 </html>
+
+
